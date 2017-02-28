@@ -9,22 +9,33 @@ parser.add_argument('csvfil', type=str, metavar='FILE', help='CSV input file')
 parser.add_argument('ftype',  type=str, metavar='FILETYPE', help='Specify the file type (pdf or epub) to download. For multiple use a comma separated list.')
 
 def sld(argCsvFile, argFiletype):
+    # Set up logger
+    logging.basicConfig(level=logging.INFO)
+    
+    # Check if file exist
     if not os.path.exists(argCsvFile):
         logging.error('File does not exist: '+argCsvFile)
         return
     
+    # Read file type in
     filTypeList = argFiletype.replace(' ','').lower().split(',')
     
+    # Read input file
     with open(argCsvFile, 'rb') as csvFile:
         csvContent = csv.DictReader(csvFile, delimiter=',', quotechar='"')
         for row in csvContent:
             for filtype in filTypeList:
+                # Determine download url
                 if filtype == 'pdf':
                     url = row['URL'].replace('book', 'content/pdf')+'.pdf'
                 elif filtype == 'epub':
                     url = row['URL'].replace('book', 'download/epub')+'.epub'
                 else:
                     logging.error('Filytype not supported: '+filtype)
+                    continue
+                
+                # Download file
+                logging.info('Downloading '+filtype+' of book '+row['Item Title']+' from URL '+url)
     
 ####################################################################################################
 if __name__ == '__main__':
