@@ -3,7 +3,7 @@ import argparse
 import logging
 import os
 import csv
-import urllib2
+import requests
 
 parser = argparse.ArgumentParser(description='Download the books, which are specified in the csv file. The file have to be a CSV file downloaded at the link.springer.com page. This works only if access is granted.')
 parser.add_argument('csvfil', type=str, metavar='FILE', help='CSV input file')
@@ -42,9 +42,9 @@ def sld(argCsvFile, argFiletype):
                 filnam = row['Item Title']+'.'+filtype
                 logging.info('Downloading "'+row['Item Title']+'", '+filnam+', '+url)
 #                logging.info(numCurBook+'/'+numOfBooks+' Downloading "'+row['Item Title']+'", '+filnam+', '+url)
-                data = urllib2.urlopen(url)
+                data = requests.get(url)
                 with open(filnam, 'w') as outfil:
-                    outfil.write(data.read())
+                    outfil.write(data.content)
     
 ####################################################################################################
 if __name__ == '__main__':
