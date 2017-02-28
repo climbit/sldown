@@ -24,7 +24,10 @@ def sld(argCsvFile, argFiletype):
     # Read input file
     with open(argCsvFile, 'rb') as csvFile:
         csvContent = csv.DictReader(csvFile, delimiter=',', quotechar='"')
+#        numOfBooks = len(list(csvContent))
+        numCurBook = 0
         for row in csvContent:
+            numCurBook = numCurBook+1
             for filtype in filTypeList:
                 # Determine download url
                 if filtype == 'pdf':
@@ -38,6 +41,7 @@ def sld(argCsvFile, argFiletype):
                 # Download file
                 filnam = row['Item Title']+'.'+filtype
                 logging.info('Downloading "'+row['Item Title']+'", '+filnam+', '+url)
+#                logging.info(numCurBook+'/'+numOfBooks+' Downloading "'+row['Item Title']+'", '+filnam+', '+url)
                 data = urllib2.urlopen(url)
                 with open(filnam, 'w') as outfil:
                     outfil.write(data.read())
