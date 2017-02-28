@@ -43,6 +43,9 @@ def sld(argCsvFile, argFiletype):
                 logging.info('Downloading "'+row['Item Title']+'", '+filnam+', '+url)
 #                logging.info(numCurBook+'/'+numOfBooks+' Downloading "'+row['Item Title']+'", '+filnam+', '+url)
                 data = requests.get(url)
+                if 'html' in data.headers['content-type']:
+                    logging.info('It seems that you dont have access to this file.')
+                    continue
                 with open(filnam, 'w') as outfil:
                     outfil.write(data.content)
     
