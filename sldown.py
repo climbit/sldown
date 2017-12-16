@@ -48,7 +48,7 @@ def sld(argCsvFile, argFiletype):
 ####################################################################################################
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download the books, which are specified in the csv file. The file have to be a CSV file downloaded at the link.springer.com page. This works only if access is granted.')
-    parser.add_argument('csvfil', type=str, metavar='FILE', help='CSV input file')
-    parser.add_argument('ftype',  type=str, metavar='FILETYPE', help='Specify the file type (pdf or epub) to download. For multiple use a comma separated list.')
+    parser.add_argument('input', type=str, metavar='INPUT', help='The input can ether be a csv file formated like the one you can download from springer link search result page or a url to a springer link search result page.')
+    parser.add_argument('-t', '--type',  type=str, metavar='FILETYPE', help='Specify the file type to download. For multiple use a comma separated list. Accepted types are pdf and epub')
     args = parser.parse_args()
-    sld(args.csvfil, args.ftype)
+    sld(args.input, args.type)
