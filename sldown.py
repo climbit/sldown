@@ -5,10 +5,6 @@ import os
 import csv
 import requests
 
-parser = argparse.ArgumentParser(description='Download the books, which are specified in the csv file. The file have to be a CSV file downloaded at the link.springer.com page. This works only if access is granted.')
-parser.add_argument('csvfil', type=str, metavar='FILE', help='CSV input file')
-parser.add_argument('ftype',  type=str, metavar='FILETYPE', help='Specify the file type (pdf or epub) to download. For multiple use a comma separated list.')
-
 def sld(argCsvFile, argFiletype):
     # Set up logger
     logging.basicConfig(level=logging.INFO)
@@ -51,5 +47,8 @@ def sld(argCsvFile, argFiletype):
     
 ####################################################################################################
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Download the books, which are specified in the csv file. The file have to be a CSV file downloaded at the link.springer.com page. This works only if access is granted.')
+    parser.add_argument('csvfil', type=str, metavar='FILE', help='CSV input file')
+    parser.add_argument('ftype',  type=str, metavar='FILETYPE', help='Specify the file type (pdf or epub) to download. For multiple use a comma separated list.')
     args = parser.parse_args()
     sld(args.csvfil, args.ftype)
