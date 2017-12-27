@@ -7,6 +7,7 @@ import requests
 
 
 class sldown:
+    urlList = []
     csvList = []
     
     def __init__(self):
@@ -46,6 +47,10 @@ class sldown:
                         continue
                     
                     # Download file
+                    # r = requests.get('url')
+                    # fh = open('filename', "wb")
+                    # fh.write(r.content)
+                    # fh.close()
                     filnam = row['Item Title']+'.'+filtype
                     logging.info('Downloading "'+row['Item Title']+'", '+filnam+', '+url)
     #                logging.info(numCurBook+'/'+numOfBooks+' Downloading "'+row['Item Title']+'", '+filnam+', '+url)
