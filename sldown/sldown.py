@@ -2,19 +2,62 @@
 import argparse
 import logging
 import os
+import io
 import csv
 import requests
+import urllib
 
 
 class sldown:
-    urlList = []
-    csvList = []
+    def __init__(self, url):
+        self.searchUrl = url
+        self.itemList = []
+        self.urlParsed = urllib.parse.urlparse(self.searchUrl)
+        self.query = urllib.parse.parse_qs(self.urlParsed.query)
+        self.yearStart = int(self.query['facet-start-year'][0])
+        self.yearEnd = int(self.query['facet-end-year'][0])
     
-    def __init__(self):
+    def Download(self):
         pass
     
-    def getItemList(self):
-        pass
+    def CreateItemList(self):
+        fn_tmp = 'tmp.csv'
+        pdf_base = 'https://link.springer.com/content/pdf/'
+        epub_base = 'https://link.springer.com/download/epub/'
+        ref_base = 'https://citation-needed.springer.com/v2/references/'
+        ref_params = [{'flavour':'citation', 'format':'refman'}, {'flavour':'citation', 'format':'bibtex'}]
+        for year in range(self.yearStart, self.yearEnd+1):
+            self.query['facet-start-year'] = str(year)
+            self.query['facet-end-year'] = str(year)
+            csvUrl = self.urlParsed._replace(path=self.urlParsed.path+'/csv', query=urllib.parse.urlencode(self.query, doseq=True)).geturl()
+            response = requests.get(csvUrl)
+            if response.ok:
+                with open(fn_tmp, "wb") as tmp:
+                    tmp.write(response.content)
+                # with io.StringIO(response.content.decode('utf-8')) as hcsv:
+                with open(fn_tmp, "r") as hcsv:
+                    csv_iter = csv.reader(hcsv)
+                    for row in csv_iter:
+                        if row[5].lower() == 'item doi':
+                            continue
+                        fn = row[5].replace('/', '_')
+                        print(pdf_base+row[5]+'.pdf')
+                        response = requests.get(pdf_base+row[5]+'.pdf')
+                        if response.ok:
+                          with open(fn+'.pdf', 'wb') as fh:
+                              fh.write(response.content)
+                        print(epub_base+row[5]+'.epub')
+                        response = requests.get(epub_base+row[5]+'.epub')
+                        if response.ok:
+                            with open(fn+'.epub', 'wb') as fh:
+                                fh.write(response.content)
+                        for ref in ref_params:
+                            response = requests.get(ref_base+row[5], ref)
+                            if response.ok:
+                                with open(fn+'.epub', 'wb') as fh:
+                                    fh.write(response.content)
+        if os.path.isfile(fn_tmp):
+            os.remove(fn_tmp)
     
     
     def sld(argCsvFile, argFiletype):
@@ -67,4 +110,5 @@ if __name__ == '__main__':
     parser.add_argument('input', type=str, metavar='INPUT', help='The input can ether be a csv file formated like the one you can download from springer link search result page or a url to a springer link search result page.')
     parser.add_argument('-t', '--type',  type=str, metavar='FILETYPE', help='Specify the file type to download. For multiple use a comma separated list. Accepted types are pdf and epub')
     args = parser.parse_args()
-    sld(args.input, args.type)
+    new  = sldown(args.input)
+    new.CreateItemList()
