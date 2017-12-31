@@ -12,20 +12,40 @@ class sldown:
     def __init__(self, url):
         self.searchUrl = url
         self.itemList = []
+        self.numItems = len(self.itemList)
         self.urlParsed = urllib.parse.urlparse(self.searchUrl)
         self.query = urllib.parse.parse_qs(self.urlParsed.query)
         self.yearStart = int(self.query['facet-start-year'][0])
         self.yearEnd = int(self.query['facet-end-year'][0])
     
-    def Download(self):
-        pass
-    
-    def CreateItemList(self):
-        fn_tmp = 'tmp.csv'
+    def DownloadItemList(self):
         pdf_base = 'https://link.springer.com/content/pdf/'
         epub_base = 'https://link.springer.com/download/epub/'
         ref_base = 'https://citation-needed.springer.com/v2/references/'
         ref_params = [{'flavour':'citation', 'format':'refman'}, {'flavour':'citation', 'format':'bibtex'}]
+        for item in self.itemList:
+            print(self.itemList.index(item)+1, '/', self.numItems)
+            fn = item.replace('/', '_')
+            response = requests.get(pdf_base+item+'.pdf')
+            print(response.url)
+            if response.ok and response.headers['Content-Type'] == 'application/pdf':
+              with open(fn+'.pdf', 'wb') as fh:
+                  fh.write(response.content)
+            response = requests.get(epub_base+item+'.epub')
+            print(response.url)
+            if response.ok and response.headers['Content-Type'] == 'application/xml':
+                with open(fn+'.epub', 'wb') as fh:
+                    fh.write(response.content)
+            for ref in ref_params:
+                response = requests.get(ref_base+item+'_1', ref)
+                print(response.url)
+                if response.ok:
+                    with open(fn+'.epub', 'wb') as fh:
+                        fh.write(response.content)
+            break
+    
+    def CreateItemList(self):
+        fn_tmp = 'tmp.csv'
         for year in range(self.yearStart, self.yearEnd+1):
             self.query['facet-start-year'] = str(year)
             self.query['facet-end-year'] = str(year)
@@ -35,29 +55,15 @@ class sldown:
                 with open(fn_tmp, "wb") as tmp:
                     tmp.write(response.content)
                 # with io.StringIO(response.content.decode('utf-8')) as hcsv:
-                with open(fn_tmp, "r") as hcsv:
+                with open(fn_tmp, "r", encoding='utf8') as hcsv:
                     csv_iter = csv.reader(hcsv)
                     for row in csv_iter:
                         if row[5].lower() == 'item doi':
                             continue
-                        fn = row[5].replace('/', '_')
-                        print(pdf_base+row[5]+'.pdf')
-                        response = requests.get(pdf_base+row[5]+'.pdf')
-                        if response.ok:
-                          with open(fn+'.pdf', 'wb') as fh:
-                              fh.write(response.content)
-                        print(epub_base+row[5]+'.epub')
-                        response = requests.get(epub_base+row[5]+'.epub')
-                        if response.ok:
-                            with open(fn+'.epub', 'wb') as fh:
-                                fh.write(response.content)
-                        for ref in ref_params:
-                            response = requests.get(ref_base+row[5], ref)
-                            if response.ok:
-                                with open(fn+'.epub', 'wb') as fh:
-                                    fh.write(response.content)
+                        self.itemList.append(row[5])
         if os.path.isfile(fn_tmp):
             os.remove(fn_tmp)
+        self.numItems = len(self.itemList)
     
     
     def sld(argCsvFile, argFiletype):
@@ -112,3 +118,4 @@ if __name__ == '__main__':
     args = parser.parse_args()
     new  = sldown(args.input)
     new.CreateItemList()
+    new.DownloadItemList()
